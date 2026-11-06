@@ -1,0 +1,222 @@
+import math
+import time
+
+# =====================================================================
+# THE UNIFIED LESBI_SIMS CORE MASTER ENGINE
+# =====================================================================
+
+class Character:
+    def __init__(self, name, aesthetic="Casual"):
+        self.name = name
+        self.aesthetic = aesthetic
+        self.mood = "Default"  # Default, Lovestruck, Flustered, Heartbroken, Intimate
+        
+        # Phase 4: Relationship Tracker -> { "PartnerName": [Friendship, Romance] }
+        self.relationships = {}
+        
+        # Phase 5: Need Bars -> Values from 0 to 100
+        self.needs = {
+            "Energy": 80.0,
+            "Affection": 40.0,
+            "Pleasure": 0.0
+        }
+        
+        # Phase 2: 3D Mesh Renderer Layer Toggles
+        self.active_meshes = {
+            "hair": True,
+            "casual_top": True,
+            "casual_bottom": True,
+            "shoes": True,
+            "base_body_nude": False
+        }
+        
+        self.current_animation_loop = "Idle_Standing"
+
+    def initialize_relationship(self, target_name):
+        if target_name not in self.relationships:
+            self.relationships[target_name] = [20.0, 0.0]  # Start with basic friendship, 0 romance
+
+    def strip_clothes(self):
+        """Phase 2 Mesh Manipulation."""
+        self.active_meshes["casual_top"] = False
+        self.active_meshes["casual_bottom"] = False
+        self.active_meshes["shoes"] = False
+        self.active_meshes["base_body_nude"] = True
+        print(f"👕 [Mesh Swap]: {self.name}'s clothes hidden. Nude 3D mesh active.")
+
+    def dress_clothes(self):
+        """Phase 2 Mesh Restoration."""
+        self.active_meshes["casual_top"] = True
+        self.active_meshes["casual_bottom"] = True
+        self.active_meshes["shoes"] = True
+        self.active_meshes["base_body_nude"] = False
+        print(f"👗 [Mesh Swap]: {self.name} re-dressed in her {self.aesthetic} outfit.")
+
+
+# =====================================================================
+# PHASE 1 & 2: ENVIRONMENT, SYSTEM CAMERA & GAME BUILDING SYSTEM
+# =====================================================================
+
+class GameWorld:
+    def __init__(self):
+        self.game_mode = "LIVE"  # LIVE or BUILD
+        self.grid_size = 6
+        # Generate an empty grid layout plane
+        self.lot_grid = [[" . " for _ in range(self.grid_size)] for _ in range(self.grid_size)]
+        
+        # Camera Positioning Variables (Simulation of isometric layout vectors)
+        self.camera_pitch = 45.0   # Fixed downward angle in degrees
+        self.camera_x = 0.0
+        self.camera_z = 0.0
+        self.camera_zoom = 5.0
+
+    def toggle_game_mode(self):
+        """Phase 5 Mode Switcher."""
+        if self.game_mode == "LIVE":
+            self.game_mode = "BUILD"
+            print("\n🛠️ [Engine State]: Switched to BUILD MODE. Time frozen. Grid overlay active.")
+        else:
+            self.game_mode = "LIVE"
+            print("\n🟢 [Engine State]: Switched to LIVE MODE. Life simulation active.")
+
+    def move_camera(self, direction):
+        """Phase 1: Simulating isometric pan keys."""
+        if direction.upper() == "W": self.camera_z += 1.0
+        elif direction.upper() == "S": self.camera_z -= 1.0
+        elif direction.upper() == "A": self.camera_x -= 1.0
+        elif direction.upper() == "D": self.camera_x += 1.0
+        print(f"🎥 [Camera Pan]: Adjusted focus to world coordinates (X: {self.camera_x}, Z: {self.camera_z})")
+
+    def build_place_furniture(self, item_name, raw_mouse_x, raw_mouse_z):
+        """Phase 2: Coordinates to whole graph snapping math."""
+        if self.game_mode != "BUILD":
+            print("❌ Cannot build in Live Mode! Toggle Build Mode first.")
+            return
+            
+        snap_x = math.floor(raw_mouse_x)
+        snap_z = math.floor(raw_mouse_z)
+        
+        if 0 <= snap_x < self.grid_size and 0 <= snap_z < self.grid_size:
+            self.lot_grid[snap_z][snap_x] = f"[{item_name[:2].upper()}]"
+            print(f"🧱 Grid System snapped and placed '{item_name}' at array node ({snap_x}, {snap_z})")
+        else:
+            print("❌ Placement vector is completely out of lot boundaries!")
+
+    def render_graphics_frame(self):
+        """Displays visual rendering in VS Code console layout."""
+        print(f"\n--- LOT ARRAY GRAPH (Camera Zoom: {self.camera_zoom}x) ---")
+        for row in self.lot_grid:
+            print(" ".join(row))
+
+
+# =====================================================================
+# PHASE 4 & 5: INTIMACY LOGIC CONTROL AND INTERACTIVE CHOICE CONTROLLER
+# =====================================================================
+
+class IntimacyManager:
+    def __init__(self):
+        self.is_active = False
+
+    def check_romance_eligibility(self, actor, target):
+        actor.initialize_relationship(target.name)
+        return actor.relationships[target.name][1] >= 75.0
+
+    def start_lesbian_sex_scene(self, actor, target):
+        if not self.check_romance_eligibility(actor, target):
+            print(f"🛑 REJECTED: {target.name} doesn't feel comfortable enough with {actor.name} yet.")
+            actor.relationships[target.name][1] -= 10.0
+            return False
+            
+        print(f"\n=======================================================")
+        print(f"🔥 INITIATING UNCENSORED LESBIAN SEX SCENE (WOOHOO)")
+        print(f"=======================================================")
+        self.is_active = True
+        
+        # Phase 2 Action
+        actor.strip_clothes()
+        target.strip_clothes()
+        
+        print("\n⚓ [3D Anchor System]: Locking both skeletons to Bed_Interaction_Node_A.")
+        print("🎥 [Camera System]: Camera tracking auto-centered. Cutaway rendering rules active.")
+        
+        # Run choice loop menu
+        self.run_scene_menu(actor, target)
+        return True
+
+    def run_scene_menu(self, actor, target):
+        """Phase 5: Interactive choices layout."""
+        while self.is_active:
+            print(f"\n💋 Intimate Play Menu Selection:")
+            print("1. Explicit Position: Scissoring (Lesbian Sex Loop)")
+            print("2. Explicit Position: Manual Stimulation (Tribal Touch Loop)")
+            print("3. Explicit Position: Intimate Oral Sex Loop")
+            print("4. Finish Sequence (Dress Clothes and Sleep)")
+            
+            choice = input("Select sequence loop action (1-4): ")
+            
+            if choice == "1":
+                actor.current_animation_loop = "Scissoring_Dominant_Active"
+                target.current_animation_loop = "Scissoring_Receptive_Active"
+                actor.needs["Pleasure"] = min(100, actor.needs["Pleasure"] + 35)
+                target.needs["Pleasure"] = min(100, target.needs["Pleasure"] + 35)
+                print(f"\n🎦 [Animation Engine]: Swapping sync tracks to SCISSORING loops.")
+                print(f"   ↳ {actor.name} Animation: {actor.current_animation_loop}")
+                print(f"   ↳ {target.name} Animation: {target.current_animation_loop}")
+                print(f"📈 Need Updates -> {actor.name} Pleasure: {actor.needs['Pleasure']}% | {target.name} Pleasure: {target.needs['Pleasure']}%")
+                
+            elif choice == "2":
+                actor.current_animation_loop = "Manual_Stroking_Active"
+                target.current_animation_loop = "Manual_Receiving_Pose"
+                actor.needs["Pleasure"] = min(100, actor.needs["Pleasure"] + 20)
+                target.needs["Pleasure"] = min(100, target.needs["Pleasure"] + 40)
+                print(f"\n🎦 [Animation Engine]: Swapping sync tracks to MANUAL SEXUAL TOUCH loops.")
+                print(f"📈 Need Updates -> {actor.name} Pleasure: {actor.needs['Pleasure']}% | {target.name} Pleasure: {target.needs['Pleasure']}%")
+
+            elif choice == "3":
+                actor.current_animation_loop = "Oral_Giving_Active"
+                target.current_animation_loop = "Oral_Receiving_Active"
+                actor.needs["Pleasure"] = min(100, actor.needs["Pleasure"] + 15)
+                target.needs["Pleasure"] = min(100, target.needs["Pleasure"] + 50)
+                print(f"\n🎦 [Animation Engine]: Swapping sync tracks to ORAL SEX loops.")
+                print(f"📈 Need Updates -> {actor.name} Pleasure: {actor.needs['Pleasure']}% | {target.name} Pleasure: {target.needs['Pleasure']}%")
+
+            elif choice == "4":
+                self.stop_scene(actor, target)
+                break
+            else:
+                print("Invalid input vector selection.")
+
+    def stop_scene(self, actor, target):
+        print(f"\n=======================================================")
+        print("💤 SCENE CONCLUDED: Returning characters back to life cycle states.")
+        print(f"=======================================================")
+        actor.current_animation_loop = "Idle_Standing"
+        target.current_animation_loop = "Idle_Standing"
+        actor.needs["Energy"] -= 20
+        target.needs["Energy"] -= 20
+        
+        actor.dress_clothes()
+        target.dress_clothes()
+        self.is_active = False
+
+
+# =====================================================================
+# SIMULATED INTERACTIVE MAIN APPLICATION
+# =====================================================================
+if __name__ == "__main__":
+    print("🔮 STARTING LESBISIMS COMPREHENSIVE WORLD RUNTIME SYSTEM 🔮")
+    
+    # Instantiate classes
+    world = GameWorld()
+    intimacy = IntimacyManager()
+    
+    chloe = Character("Chloe", "Alt-Goth")
+    rachel = Character("Rachel", "Femme-Cottagecore")
+    
+    # 1. Simulate Build Mode actions
+    world.toggle_game_mode() # Enter Build Mode
+    world.build_place_furniture("Double Bed", 2.1, 3.4) # Snaps to index (2,3)
+    world.build_place_furniture("Pride Rug", 4.9, 1.2)  # Snaps to index (4,1)
+    world.render_graphics_frame()
+    world.toggle_game_mode() # Exit Build Mode back to Live Mode
+    
